@@ -5,5 +5,9 @@ __pycache__/
 .ruff_cache/
 .venv/
 venv/
+.env
+.streamlit/secrets.toml
+project_context_*.txt
 logs/*.log
 output/*.xlsx
+output/public_workbooks/*.xlsx
