@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "invoice-processing"
+version = "1.0.0"
+description = "Production-style invoice PDF parser and Excel exporter."
+requires-python = ">=3.10"
+dependencies = [
+    "pdfplumber>=0.11.0",
+    "pandas>=2.0.0",
+    "openpyxl>=3.1.0",
+]
+
+[project.scripts]
+process-invoices = "invoice_processing.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
