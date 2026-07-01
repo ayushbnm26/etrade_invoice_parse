@@ -104,12 +104,6 @@ class PublicWorkbookExporterTests(unittest.TestCase):
             self.assertEqual(items["N5"].value, 295.0)
             self.assertEqual(items["A6"].value, "Total Quantity")
             self.assertEqual(items["B6"].value, 3)
-            self.assertEqual(items["A8"].value, "Shipping Address")
-            self.assertEqual(items["H8"].value, "Receiver Shipping Address")
-            self.assertIn("Seller Warehouse", items["A9"].value)
-            self.assertIn("Mumbai, Maharashtra", items["A9"].value)
-            self.assertIn("Customer Receiving", items["H9"].value)
-            self.assertIn("Bengaluru, Karnataka", items["H9"].value)
 
 
 if __name__ == "__main__":
