@@ -92,7 +92,12 @@ class ExcelExporter:
             items_sheet = workbook.create_sheet("Items")
 
             self._build_public_details_sheet(details_sheet, parsed_invoice.header)
-            self._build_public_items_sheet(items_sheet, parsed_invoice.line_items, parsed_invoice.summary)
+            self._build_public_items_sheet(
+                items_sheet,
+                parsed_invoice.header,
+                parsed_invoice.line_items,
+                parsed_invoice.summary,
+            )
 
             workbook.save(output_path)
         except Exception as exc:
@@ -185,6 +190,7 @@ class ExcelExporter:
     def _build_public_items_sheet(
         self,
         worksheet: Any,
+        header: dict[str, Any],
         line_items: list[dict[str, Any]],
         summary: dict[str, Any],
     ) -> None:
@@ -247,11 +253,84 @@ class ExcelExporter:
                 cell.alignment = Alignment(vertical="center", wrap_text=True)
                 self._apply_public_number_format(cell, field_name)
 
+        self._append_public_address_footer(
+            worksheet,
+            header,
+            start_row=total_quantity_row + 2,
+            border=border,
+            text_color=text_color,
+        )
+
         worksheet.freeze_panes = "A4"
         self._auto_fit_columns(worksheet, max_width=24)
 
     def _prepare_public_sheet(self, worksheet: Any) -> None:
         worksheet.sheet_view.showGridLines = False
+
+    def _append_public_address_footer(
+        self,
+        worksheet: Any,
+        header: dict[str, Any],
+        *,
+        start_row: int,
+        border: Border,
+        text_color: str,
+    ) -> None:
+        heading_fill = PatternFill("solid", fgColor="EAF2F8")
+        body_fill = PatternFill("solid", fgColor="FBFCFE")
+        body_start_row = start_row + 1
+        body_end_row = start_row + 5
+        address_blocks = [
+            (1, 7, "Shipping Address", self._format_address(header, "shipping")),
+            (
+                8,
+                len(PUBLIC_ITEM_COLUMNS),
+                "Receiver Shipping Address",
+                self._format_address(header, "receiver_shipping"),
+            ),
+        ]
+
+        worksheet.row_dimensions[start_row].height = 22
+        for row_index in range(body_start_row, body_end_row + 1):
+            worksheet.row_dimensions[row_index].height = 20
+
+        for start_column, end_column, label, address in address_blocks:
+            worksheet.merge_cells(
+                start_row=start_row,
+                start_column=start_column,
+                end_row=start_row,
+                end_column=end_column,
+            )
+            heading_cell = worksheet.cell(row=start_row, column=start_column, value=label)
+            heading_cell.fill = heading_fill
+            heading_cell.font = Font(bold=True, color=text_color)
+            heading_cell.alignment = Alignment(horizontal="center", vertical="center")
+
+            worksheet.merge_cells(
+                start_row=body_start_row,
+                start_column=start_column,
+                end_row=body_end_row,
+                end_column=end_column,
+            )
+            body_cell = worksheet.cell(
+                row=body_start_row,
+                column=start_column,
+                value=address or "Not available",
+            )
+            body_cell.fill = body_fill
+            body_cell.font = Font(color=text_color)
+            body_cell.alignment = Alignment(vertical="top", wrap_text=True)
+
+            for row_cells in worksheet.iter_rows(
+                min_row=start_row,
+                max_row=body_end_row,
+                min_col=start_column,
+                max_col=end_column,
+            ):
+                for cell in row_cells:
+                    cell.border = border
+                    if cell.row > start_row:
+                        cell.fill = body_fill
 
     def _format_address(self, header: dict[str, Any], prefix: str) -> str:
         lines = [
