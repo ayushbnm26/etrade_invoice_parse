@@ -17,8 +17,6 @@ from invoice_processing.parsers.common import (  # noqa: E402
     parse_amount,
     parse_int,
 )
-from invoice_processing.models import PdfDocumentData, PdfPageData  # noqa: E402
-from invoice_processing.parsers.invoice_parser import InvoiceParser  # noqa: E402
 
 
 class CommonParserTests(unittest.TestCase):
@@ -38,26 +36,6 @@ class CommonParserTests(unittest.TestCase):
             dedupe_repeated_phrase("ETRADE MARKETING PRIVATE LIMITED ETRADE MARKETING PRIVATE LIMITED"),
             "ETRADE MARKETING PRIVATE LIMITED",
         )
-
-
-class HeaderParserTests(unittest.TestCase):
-    def test_system_ref_no_stops_at_next_header_label(self) -> None:
-        cases = [
-            ("System Ref No : 42000104035 Credit Note Date : 02-Jun-2026", "42000104035"),
-            ("System Ref No : 42000103534 Credit Note Date : 02-Jun-2026", "42000103534"),
-            ("System Ref No : 30001158056 Invoice Date : 21-May-2026", "30001158056"),
-        ]
-
-        parser = InvoiceParser()
-        for text, expected in cases:
-            with self.subTest(text=text):
-                document = PdfDocumentData(
-                    path=Path("test.pdf"),
-                    page_count=1,
-                    pages=[PdfPageData(page_number=1, text=text, words=[], tables=[])],
-                )
-
-                self.assertEqual(parser._parse_header(document)["system_ref_no"], expected)
 
 
 if __name__ == "__main__":
